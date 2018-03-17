@@ -6,6 +6,7 @@ import sys
 import itertools
 
 import util.client
+import util.files
 
 COMMENTS_TO_SCRAPE = 6000
 EMOJIPASTA = "emojipasta"
@@ -13,7 +14,7 @@ EMOJIPASTA = "emojipasta"
 def main():
     reddit = util.client.get_client(sys.argv)
 
-    file = open("../../data/emojipasta-comments", "w+", encoding="utf-8")
+    file = open(util.files.PATH_TO_COMMENTS_FILE, "w+", encoding="utf-8")
 
     comments_scraped = 0
     for comment in generate_comments(reddit.subreddit(EMOJIPASTA)):

@@ -18,9 +18,19 @@ class EmojipastaGenerator:
     _WORD_DELIMITER = " "
     _MAX_EMOJIS_PER_BLOCK = 2
 
+    """Creates with default emoji mappings, loaded from a JSON file in the package.
+    """
     @classmethod
-    def of(cls):
+    def of_default_mappings(cls):
         return EmojipastaGenerator(get_emoji_mappings())
+
+    """Create with custom emoji mappings.
+    emoji_mappings: a dict that maps from a lowercase word to a
+        list of emojis (the emojis being single-character strings).
+    """
+    @classmethod
+    def of_custom_mappings(cls, emoji_mappings):
+        return EmojipastaGenerator(emoji_mappings)
 
     def __init__(self, emoji_mappings):
         self._emoji_mappings = emoji_mappings
@@ -33,7 +43,6 @@ class EmojipastaGenerator:
             emojis = self._generate_emojis_from(block)
             if emojis:
                 new_blocks.append(" " + emojis)
-            new_blocks.append(" " + self._generate_emojis_from(block))
         return "".join(new_blocks)
 
     def _generate_emojis_from(self, block):
@@ -41,7 +50,7 @@ class EmojipastaGenerator:
         matching_emojis = self._get_matching_emojis(trimmed_block)
         emojis = []
         if matching_emojis:
-            num_emojis = random.randint(1, self._MAX_EMOJIS_PER_BLOCK)
+            num_emojis = random.randint(0, self._MAX_EMOJIS_PER_BLOCK)
             for _ in range(num_emojis):
                 emojis.append(random.choice(matching_emojis))
         return "".join(emojis)
@@ -65,8 +74,8 @@ def get_emoji_mappings():
         return json.load(mappings_file)
 
 def main():
-    generator = EmojipastaGenerator.of()
-    print(generator.generate_emojipasta("why hello world, cummy something something as feminism hate scared skin hot"))
+    generator = EmojipastaGenerator.of_default_mappings()
+    print(generator.generate_emojipasta("it's getting hot in here"))
 
 if __name__ == "__main__":
     main()

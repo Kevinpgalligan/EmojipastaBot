@@ -1,5 +1,5 @@
 """
-Dealing with the data files.
+Used to access the data files.
 """
 
 import os.path

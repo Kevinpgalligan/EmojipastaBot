@@ -7,6 +7,8 @@ import re
 BLOCK_REGEX = re.compile(r"\s*[^\s]*")
 TRIM_REGEX = re.compile(r"^\W*|\W*$")
 
+# A 'block' is a prefix of whitespace characters followed
+# by a series of non-whitespace characters.
 def split_into_blocks(text):
     if text == "" or BLOCK_REGEX.search(text) is None:
         return [text]
