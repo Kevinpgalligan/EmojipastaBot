@@ -1,16 +1,11 @@
 from setuptools import setup
 from setuptools import find_packages
 
-# TODO
-# nltk.download('perluniprops')
-# ^ I had to run that in the Python interpreter to make the build work.
-# This prob shouldn't happen.
-
 setup(
-    name="emojipasta",
+    name="emojipastabot",
     description="Generate emojipasta from text.",
     version="1.0.0",
-    url="https://github.com/Kevinpgalligan/emojipasta",
+    url="https://github.com/Kevinpgalligan/EmojipastaBot",
     author="Kevin Galligan",
     author_email="galligankevinp@gmail.com",
     classifiers=[
@@ -24,6 +19,8 @@ setup(
     packages=find_packages("src"),
     package_dir={'': 'src'},
     install_requires=[
-        "nltk"
+        "emoji",
+        "praw"
     ]
 )
+
