@@ -18,13 +18,15 @@ SECONDS_TO_WAIT_AFTER_RATE_LIMITING = 600
 def main():
     reddit = get_client(sys.argv)
     emojipasta_generator = EmojipastaGenerator.of_default_mappings()
-    bot_user_tag = "u/" + reddit.user.me().name
+    bot_user_tag = "u/" + reddit.user.me().name.lower()
 
     inbox = reddit.inbox
     while True:
         log("Reading inbox...")
         for mention in inbox.unread(limit=None):
-            if isinstance(mention, Comment) and bot_user_tag in mention.body:
+            # Cast the mention to lower case, the username might
+            # not be capitalized correctly.
+            if isinstance(mention, Comment) and bot_user_tag in mention.body.lower():
                 log("====== COMMENT ======")
                 log("Received comment from u/" + mention.author.name + ".")
                 text_of_parent = get_text_of_parent(mention)

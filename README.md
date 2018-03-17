@@ -1,6 +1,6 @@
 ## Description
-This Python bot responds to mentions on reddit with an emojipastified version
-of the parent of the mention.
+This Python bot turns the parent of your comment into emojipasta. It can be
+summoned by a username tag, 'u/AnEmojipastaBot'.
 
 Example:
 
@@ -16,8 +16,8 @@ and the scraping tool, are based on the PRAW framework, and the
 'emoji' Python package was used identify emojis in the r/emojipasta
 comments.
 
-There are no hard-coded credentials in the code, so everyone is
-free to run their own version of the bot.
+There are no hard-coded credentials or user details in the code, so
+everyone is free to run their own version of the bot.
 
 ## How to use
 #### The bot
