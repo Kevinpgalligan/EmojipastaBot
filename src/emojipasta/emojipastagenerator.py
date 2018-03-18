@@ -10,9 +10,6 @@ import util.text
 import util.emoji
 import util.files
 
-# Lazy initialization, use get_emoji_mappings().
-EMOJI_MAPPINGS = None
-
 class EmojipastaGenerator:
 
     _WORD_DELIMITER = " "
@@ -22,7 +19,7 @@ class EmojipastaGenerator:
     """
     @classmethod
     def of_default_mappings(cls):
-        return EmojipastaGenerator(get_emoji_mappings())
+        return EmojipastaGenerator(_get_emoji_mappings())
 
     """Create with custom emoji mappings.
     emoji_mappings: a dict that maps from a lowercase word to a
@@ -67,15 +64,18 @@ class EmojipastaGenerator:
             i += 1
         return s[:i]
 
-def get_emoji_mappings():
-    if EMOJI_MAPPINGS is not None:
-        return EMOJI_MAPPINGS
-    with io.open(util.files.PATH_TO_MAPPINGS_FILE, "r", encoding="utf-8") as mappings_file:
-        return json.load(mappings_file)
+_EMOJI_MAPPINGS = None
+
+def _get_emoji_mappings():
+    global _EMOJI_MAPPINGS
+    if _EMOJI_MAPPINGS is None:
+        with io.open(util.files.PATH_TO_MAPPINGS_FILE, "r", encoding="utf-8") as mappings_file:
+            _EMOJI_MAPPINGS = json.load(mappings_file)
+    return _EMOJI_MAPPINGS
 
 def main():
     generator = EmojipastaGenerator.of_default_mappings()
-    print(generator.generate_emojipasta("it's getting hot in here"))
+    print(generator.generate_emojipasta("testing testing hello world"))
 
 if __name__ == "__main__":
     main()

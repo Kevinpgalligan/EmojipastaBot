@@ -6,7 +6,7 @@ user-provided credentials (from the command line).
 import praw
 import sys
 
-def get_client(argv):
+def get_reddit(argv):
     if len(argv) != 6:
         print("Please provide: <client_id> <client_secret> <user_agent> <username> <password>")
         sys.exit(1)

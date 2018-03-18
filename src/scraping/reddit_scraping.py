@@ -12,7 +12,7 @@ COMMENTS_TO_SCRAPE = 6000
 EMOJIPASTA = "emojipasta"
 
 def main():
-    reddit = util.client.get_client(sys.argv)
+    reddit = util.client.get_reddit(sys.argv)
 
     file = open(util.files.PATH_TO_COMMENTS_FILE, "w+", encoding="utf-8")
 

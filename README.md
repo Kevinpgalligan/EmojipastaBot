@@ -30,7 +30,7 @@ If you don't have credentials or a reddit user, then follow the setup
 instructions in the [PRAW docs](http://praw.readthedocs.io/en/latest/getting_started/quick_start.html).
 
 #### The scraper
-The scraper saves the data to a hard-coded location, you may want
+The scraper saves comments to a hard-coded location, you may want
 to modify it.
 ```
 python ./src/scraping/reddit_scraping.py <client_id> <client_secret> <user_agent> <username> <password>
