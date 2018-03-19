@@ -9,8 +9,8 @@ import sys
 from praw.models import Comment, Submission
 import praw.exceptions
 
-from util.client import get_reddit
-from emojipasta.emojipastagenerator import EmojipastaGenerator
+from emojipasta.util.client import get_reddit
+from emojipasta.generator.emojipastagenerator import EmojipastaGenerator
 
 SECONDS_BETWEEN_RUNS = 60
 SECONDS_TO_WAIT_AFTER_RATE_LIMITING = 600

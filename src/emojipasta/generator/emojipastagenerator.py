@@ -6,9 +6,9 @@ import random
 import io
 import json
 
-import util.text
-import util.emoji
-import util.files
+import emojipasta.util.emoji
+import emojipasta.util.files
+import emojipasta.util.text
 
 class EmojipastaGenerator:
 
@@ -33,7 +33,7 @@ class EmojipastaGenerator:
         self._emoji_mappings = emoji_mappings
 
     def generate_emojipasta(self, text):
-        blocks = util.text.split_into_blocks(text)
+        blocks = emojipasta.util.text.split_into_blocks(text)
         new_blocks = []
         for i, block in enumerate(blocks):
             new_blocks.append(block)
@@ -43,7 +43,7 @@ class EmojipastaGenerator:
         return "".join(new_blocks)
 
     def _generate_emojis_from(self, block):
-        trimmed_block = util.text.trim_nonalphabetical_characters(block)
+        trimmed_block = emojipasta.util.text.trim_nonalphabetical_characters(block)
         matching_emojis = self._get_matching_emojis(trimmed_block)
         emojis = []
         if matching_emojis:
@@ -69,7 +69,7 @@ _EMOJI_MAPPINGS = None
 def _get_emoji_mappings():
     global _EMOJI_MAPPINGS
     if _EMOJI_MAPPINGS is None:
-        with io.open(util.files.PATH_TO_MAPPINGS_FILE, "r", encoding="utf-8") as mappings_file:
+        with io.open(emojipasta.util.files.PATH_TO_MAPPINGS_FILE, "r", encoding="utf-8") as mappings_file:
             _EMOJI_MAPPINGS = json.load(mappings_file)
     return _EMOJI_MAPPINGS
 

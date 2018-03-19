@@ -7,8 +7,8 @@ import io
 from collections import defaultdict
 import json
 
-import util.files
-import util.emoji
+import emojipasta.util.files
+import emojipasta.util.emoji
 
 class TokenType:
     EMOJIS = 0
@@ -23,7 +23,7 @@ def main():
     emoji_mappings = defaultdict(list)
 
     print("Creating mappings...")
-    with open(util.files.PATH_TO_COMMENTS_FILE, "r", encoding="utf-8") as comments_file:
+    with open(emojipasta.util.files.PATH_TO_COMMENTS_FILE, "r", encoding="utf-8") as comments_file:
         for line in comments_file:
             tokens = tokenize(line)
             for i, token in enumerate(tokens):
@@ -33,7 +33,7 @@ def main():
                         emoji_mappings[nearest_word].extend(list(token.raw))
 
     print("Writing mappings to file...")
-    with io.open(util.files.PATH_TO_MAPPINGS_FILE, "w", encoding="utf-8") as mappings_file:
+    with io.open(emojipasta.util.files.PATH_TO_MAPPINGS_FILE, "w", encoding="utf-8") as mappings_file:
         json.dump(emoji_mappings, mappings_file, ensure_ascii=False)
 
 def tokenize(line):
@@ -47,20 +47,20 @@ def tokenize(line):
     return tokens
 
 def skip_irrelevant_characters(line, index):
-    while index < len(line) and not line[index].isalnum() and not util.emoji.is_emoji(line[index]):
+    while index < len(line) and not line[index].isalnum() and not emojipasta.util.emoji.is_emoji(line[index]):
         index += 1
     return index
 
 def parse_token(line, index):
     if index >= len(line):
         return None, index
-    elif util.emoji.is_emoji(line[index]):
+    elif emojipasta.util.emoji.is_emoji(line[index]):
         return parse_emoji(line, index)
     else:
         return parse_word(line, index)
 
 def parse_emoji(line, index):
-    return parse_specific_token(line, index, TokenType.EMOJIS, util.emoji.is_emoji)
+    return parse_specific_token(line, index, TokenType.EMOJIS, emojipasta.util.emoji.is_emoji)
 
 def parse_word(line, index):
     return parse_specific_token(line, index, TokenType.WORD, str.isalnum)
