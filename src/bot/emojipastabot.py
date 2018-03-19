@@ -125,7 +125,7 @@ def get_text_of_parent(comment):
 
 """Returns normalized name of the comment's author."""
 def author_name(comment):
-    return normalize_name(comment.author.name)
+    return "[deleted]" if comment.author is None else normalize_name(comment.author.name)
 
 def log(message, indent=0):
     print((indent * " ") + message)

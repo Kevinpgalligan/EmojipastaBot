@@ -14,7 +14,7 @@ AnEmojipastaBot: hello world 🌍
 It was built by scraping thousands of comments from r/emojipasta
 and using them to form mappings from word->emoji. The bot itself,
 and the scraping tool, are based on the PRAW framework, and the
-'emoji' Python package was used identify emojis in the r/emojipasta
+'emoji' Python package was used to identify emojis in the r/emojipasta
 comments.
 
 There are no hard-coded credentials or user details in the code, so
