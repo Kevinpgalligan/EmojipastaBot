@@ -12,7 +12,7 @@ import praw.exceptions
 from emojipasta.util.client import get_reddit
 from emojipasta.generator import EmojipastaGenerator
 
-SECONDS_BETWEEN_RUNS = 60
+SECONDS_BETWEEN_RUNS = 180
 SECONDS_TO_WAIT_AFTER_RATE_LIMITING = 600
 
 def normalize_name(name):
@@ -55,22 +55,7 @@ class EmojipastaBot:
         for mention in self._inbox.unread(limit=None):
             if isinstance(mention, Comment) and self._was_tagged_in(mention):
                 log("Received comment:")
-                log("Author is u/" + author_name(mention) + ".", EmojipastaBot.COMMENT_LOG_INDENT)
-                should_reply = True
-                if self._user_has_tagged_too_many_times_in_thread(mention):
-                    should_reply = False
-                    log("Author has tagged too many times in this comment chain, ignoring.", EmojipastaBot.COMMENT_LOG_INDENT)
-                if self._author_is_in_blacklist(mention):
-                    should_reply = False
-                    log("Author is blacklisted, ignoring.", EmojipastaBot.COMMENT_LOG_INDENT)
-                got_rate_limited = False
-                if should_reply:
-                    got_rate_limited = self._attempt_reply(mention)
-                if got_rate_limited:
-                    self._wait_for_rate_limiting_to_pass()
-                else:
-                    log("Comment processed, marking as read.", EmojipastaBot.COMMENT_LOG_INDENT)
-                    self._inbox.mark_read([mention])
+                self._reply_to_comment(mention)
         log("Finished reading inbox.")
         log("========")
 
@@ -78,6 +63,31 @@ class EmojipastaBot:
         # Cast the mention to lower case, the username might
         # not be capitalized correctly.
         return self._tag_for_bot in mention.body.lower()
+
+    def _reply_to_comment(self, comment):
+        indented_log("Author is u/" + author_name(comment) + ".")
+        should_reply = True
+        if self._user_has_tagged_too_many_times_in_thread(comment):
+            should_reply = False
+            indented_log("Author has tagged too many times in this comment chain, ignoring.")
+        if self._author_is_in_blacklist(comment):
+            should_reply = False
+            indented_log("Author is blacklisted, ignoring.")
+        got_rate_limited = False
+        if should_reply:
+            # Always mark as 'read' BEFORE attempting to reply,
+            # as otherwise the bot might get stuck in a loop
+            # trying to reply to the same comment and crashing.
+            # For example, an exception is thrown due to a 403
+            # HTTP error if the bot attempts to respond in a subreddit
+            # in which it is banned.
+            self._inbox.mark_read([comment])
+            got_rate_limited = self._attempt_reply(comment)
+        if got_rate_limited:
+            indented_log("Got rate-limited, will try again in next pass of inbox.")
+            self._wait_for_rate_limiting_to_pass()
+            self._inbox.mark_unread([comment])
+        indented_log("Comment processed.")
 
     def _user_has_tagged_too_many_times_in_thread(self, mention):
         tags = 0
@@ -98,23 +108,19 @@ class EmojipastaBot:
     """
     def _attempt_reply(self, mention):
         text_of_parent = get_text_of_parent(mention)
-        log("Text of parent is: " + text_of_parent, EmojipastaBot.COMMENT_LOG_INDENT)
+        indented_log("Text of parent is: " + text_of_parent)
         emojipasta = self._emojipasta_generator.generate_emojipasta(text_of_parent)
-        log("Generated emojipasta: " + emojipasta, EmojipastaBot.COMMENT_LOG_INDENT)
+        indented_log("Generated emojipasta: " + emojipasta)
         try:
             mention.reply(emojipasta)
         except praw.exceptions.APIException as e:
-            log("API exception: " + e.message, EmojipastaBot.COMMENT_LOG_INDENT)
+            indented_log("API exception: " + e.message)
             if e.error_type == "RATELIMIT":
                 return True
         return False
 
     def _wait_for_rate_limiting_to_pass(self):
-        log("Got rate-limited, can't reply yet.", EmojipastaBot.COMMENT_LOG_INDENT)
-        log(
-            "Waiting %d seconds for rate-limiting to wear off, then can try again"
-                .format(SECONDS_TO_WAIT_AFTER_RATE_LIMITING),
-            EmojipastaBot.COMMENT_LOG_INDENT)
+        indented_log("Waiting %d seconds for rate-limiting to wear off.".format(SECONDS_TO_WAIT_AFTER_RATE_LIMITING))
         time.sleep(SECONDS_TO_WAIT_AFTER_RATE_LIMITING)
 
 def get_text_of_parent(comment):
@@ -131,6 +137,9 @@ def author_name(comment):
 
 def log(message, indent=0):
     print((indent * " ") + message)
+
+def indented_log(message):
+    log(message, EmojipastaBot.COMMENT_LOG_INDENT)
 
 def main():
     bot = EmojipastaBot(get_reddit(sys.argv), EmojipastaGenerator.of_default_mappings())
