@@ -20,7 +20,7 @@ comments.
 There are no hard-coded credentials or user details in the code, so
 everyone is free to run their own version of the bot.
 
-## How to use
+## How to use...
 #### The bot
 
 ```

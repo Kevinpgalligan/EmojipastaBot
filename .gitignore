@@ -9,4 +9,6 @@ __pycache__/
 .eggs/
 .cache/
 
+*.log*
+
 .idea/
