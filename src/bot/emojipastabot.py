@@ -19,9 +19,11 @@ def normalize_name(name):
     return name.lower()
 
 RAW_USER_BLACKLIST = [
-    # A bot that keeps turning up whenever someone messes
-    # up the tag, causes feedback loop with emojipasta bot.
-    "Sub_Corrector_Bot"
+    # A bot that keeps turning up whenever someone makes a
+    # mistake in the tag, causes feedback loop with emojipasta bot.
+    "Sub_Corrector_Bot",
+    # Generally a good policy, this one can be unpredictable.
+    "AutoModerator"
 ]
 USER_BLACKLIST = [normalize_name(name) for name in RAW_USER_BLACKLIST]
 
