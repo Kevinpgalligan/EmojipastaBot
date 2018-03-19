@@ -1,6 +1,7 @@
 ## Description
-This Python bot turns the parent of your comment into emojipasta. It can be
-summoned by a username tag, 'u/AnEmojipastaBot'.
+
+[u/AnEmojipastaBot](https://www.reddit.com/user/anemojipastabot) turns the parent
+of your comment into emojipasta. It can be summoned by mentioning it.
 
 Example:
 

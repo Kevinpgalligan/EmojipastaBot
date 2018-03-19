@@ -17,7 +17,7 @@ SECONDS_TO_WAIT_AFTER_RATE_LIMITING = 600
 
 class EmojipastaBot:
 
-    MAX_NUM_REPLIES_IN_CHAIN = 5
+    MAX_NUM_TAGS_PER_USER_IN_CHAIN = 3
 
     """Basic constructor.
 
@@ -40,34 +40,63 @@ class EmojipastaBot:
     def reply_to_username_mentions(self):
         log("Reading inbox...")
         for mention in self._inbox.unread(limit=None):
-            if self._should_reply(mention):
-                log("====== COMMENT ======")
-                log("Received comment from u/" + mention.author.name + ".")
-                text_of_parent = get_text_of_parent(mention)
-                log("Text of parent is: " + text_of_parent)
-                emojipasta = self._emojipasta_generator.generate_emojipasta(text_of_parent)
-                log("Generated emojipasta: " + emojipasta)
-                reply_successful = attempt_reply(mention, emojipasta)
-                if reply_successful:
-                    log("Replied successfully!")
+            if isinstance(mention, Comment) and self._was_tagged_in(mention):
+                log("====== Comment")
+                log("Received comment from u/" + author_name(mention) + ".")
+                should_reply = True
+                if self._user_has_tagged_too_many_times_in_thread(mention):
+                    should_reply = False
+                    log("User has tagged too many times in this comment chain, ignoring.")
+                got_rate_limited = False
+                if should_reply:
+                    got_rate_limited = self._attempt_reply(mention)
+                if got_rate_limited:
+                    self._wait_for_rate_limiting_to_pass()
+                else:
+                    log("Comment has been processed!!")
                     self._inbox.mark_read([mention])
+                log("========")
+        log("Finished reading inbox.")
         log("========")
 
-    def _should_reply(self, mention):
-        return (isinstance(mention, Comment)
-            # Cast the mention to lower case, the username might
-            # not be capitalized correctly.
-            and self._tag_for_bot in mention.body.lower()
-            and not self._have_replied_too_many_times_in_comment_chain(mention))
+    def _was_tagged_in(self, mention):
+        # Cast the mention to lower case, the username might
+        # not be capitalized correctly.
+        return self._tag_for_bot in mention.body.lower()
 
-    def _have_replied_too_many_times_in_comment_chain(self, mention):
-        num_replies = 0
+    def _user_has_tagged_too_many_times_in_thread(self, mention):
+        tags = 0
         comment = mention
         while not comment.is_root:
-            if comment.author == self._bot_name:
-                num_replies += 1
+            if author_name(mention) == author_name(mention) and self._was_tagged_in(comment):
+                tags += 1
             comment = comment.parent()
-        return num_replies > EmojipastaBot.MAX_NUM_REPLIES_IN_CHAIN
+        return tags > EmojipastaBot.MAX_NUM_TAGS_PER_USER_IN_CHAIN
+
+    """Attempts reply, failures due to API exceptions are caught.
+
+    return: True if the bot failed the attempt due to rate limiting,
+    False otherwise.
+    """
+    def _attempt_reply(self, mention):
+        text_of_parent = get_text_of_parent(mention)
+        log("Text of parent is: " + text_of_parent)
+        emojipasta = self._emojipasta_generator.generate_emojipasta(text_of_parent)
+        log("Generated emojipasta: " + emojipasta)
+        try:
+            mention.reply(emojipasta)
+        except praw.exceptions.APIException as e:
+            log("API exception: " + e.message)
+            if e.error_type == "RATELIMIT":
+                return True
+        return False
+
+    def _wait_for_rate_limiting_to_pass(self):
+        log("Got rate-limited, can't reply yet.")
+        log(
+            "Waiting %d seconds for rate-limiting to wear off, then can try again"
+                .format(SECONDS_TO_WAIT_AFTER_RATE_LIMITING))
+        time.sleep(SECONDS_TO_WAIT_AFTER_RATE_LIMITING)
 
 def get_text_of_parent(comment):
     parent = comment.parent()
@@ -75,31 +104,11 @@ def get_text_of_parent(comment):
         return parent.selftext
     elif isinstance(parent, Comment):
         return parent.body
-    else:
-        # This should never happen.
-        raise Exception("Unknown type of parent!")
+    return ""
 
-"""Attempts reply, failures due to API exceptions are caught.
-
-Returns Boolean representing whether the original comment should
-be marked as "read". Returns True even if there was an unexpected
-API exception, however, because we don't want to keep retrying the
-same comment over and over because it has exposed a bug (e.g. comment
-size too large when emojis are added).
-"""
-def attempt_reply(comment, reply_text):
-    try:
-        comment.reply(reply_text)
-    except praw.exceptions.APIException as e:
-        log("API exception: " + e.message)
-        if e.error_type == "RATELIMIT":
-            log("Got rate-limited, can't reply yet.")
-            log(
-                "Waiting %d seconds for rate-limiting to wear off, then can try again"
-                    .format(SECONDS_TO_WAIT_AFTER_RATE_LIMITING))
-            time.sleep(SECONDS_TO_WAIT_AFTER_RATE_LIMITING)
-            return False
-    return True
+"""Returns normalized name of the comment's author."""
+def author_name(comment):
+    return comment.author.name.lower()
 
 def log(message):
     print(message)
