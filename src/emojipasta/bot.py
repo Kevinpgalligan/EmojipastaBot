@@ -29,6 +29,12 @@ RAW_USER_BLACKLIST = [
 ]
 USER_BLACKLIST = [normalize_name(name) for name in RAW_USER_BLACKLIST]
 
+RAW_SUBREDDIT_BLACKLIST = [
+    "SuicideWatch",
+    "depression"
+]
+SUBREDDIT_BLACKLIST = [normalize_name(name) for name in RAW_SUBREDDIT_BLACKLIST]
+
 LOGGER_NAME = "emojipasta_logger"
 LOG_FILE_PATH = "emojipastabot.log"
 MAX_BYTES_PER_LOG = 5_000_000
@@ -82,6 +88,13 @@ class EmojipastaBot:
         return self._tag_for_bot in mention.body.lower()
 
     def _reply_to_comment(self, comment):
+        # Always mark as 'read' BEFORE attempting to reply,
+        # as otherwise the bot might get stuck in a loop
+        # trying to reply to the same comment and crashing.
+        # For example, an exception is thrown due to a 403
+        # HTTP error if the bot attempts to respond in a subreddit
+        # in which it has been banned.
+        self._inbox.mark_read([comment])
         LOGGER.info("Author is u/" + author_name(comment) + ".")
         LOGGER.info("Subreddit is r/" + subreddit_name(comment) + ".")
         should_reply = True
@@ -91,15 +104,11 @@ class EmojipastaBot:
         if self._author_is_in_blacklist(comment):
             should_reply = False
             LOGGER.info("Author is blacklisted, ignoring.")
+        if self._subreddit_is_in_blacklist(comment):
+            should_reply = False
+            LOGGER.info("Subreddit is blacklisted, ignoring.")
         got_rate_limited = False
         if should_reply:
-            # Always mark as 'read' BEFORE attempting to reply,
-            # as otherwise the bot might get stuck in a loop
-            # trying to reply to the same comment and crashing.
-            # For example, an exception is thrown due to a 403
-            # HTTP error if the bot attempts to respond in a subreddit
-            # in which it is banned.
-            self._inbox.mark_read([comment])
             got_rate_limited = self._attempt_reply(comment)
         if got_rate_limited:
             LOGGER.warning("Got rate-limited, will try again in next pass of inbox.")
@@ -118,6 +127,9 @@ class EmojipastaBot:
 
     def _author_is_in_blacklist(self, comment):
         return author_name(comment) in USER_BLACKLIST
+
+    def _subreddit_is_in_blacklist(self, comment):
+        return subreddit_name(comment) in SUBREDDIT_BLACKLIST
 
     """Attempts reply, failures due to API exceptions are caught.
 
@@ -154,7 +166,7 @@ def author_name(comment):
     return "[deleted]" if comment.author is None else normalize_name(comment.author.name)
 
 def subreddit_name(comment):
-    return comment.subreddit.display_name
+    return normalize_name(comment.subreddit.display_name)
 
 def main():
     bot = EmojipastaBot(get_reddit(sys.argv), EmojipastaGenerator.of_default_mappings())
