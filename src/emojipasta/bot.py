@@ -17,6 +17,9 @@ from emojipasta.generator import EmojipastaGenerator
 SECONDS_BETWEEN_RUNS = 180
 SECONDS_TO_WAIT_AFTER_RATE_LIMITING = 600
 
+# I think the API limits us to pulling 100 comments at a time.
+LIMIT_ON_INBOX = 100
+
 def normalize_name(name):
     return name.lower()
 
@@ -75,10 +78,20 @@ class EmojipastaBot:
     """
     def reply_to_username_mentions(self):
         LOGGER.info("Reading inbox...")
-        for mention in self._inbox.unread(limit=None):
+        for mention in self._inbox.unread(limit=LIMIT_ON_INBOX):
             if isinstance(mention, Comment) and self._was_tagged_in(mention):
-                LOGGER.info("Received comment:")
-                self._reply_to_comment(mention)
+                try:
+                    LOGGER.info("Received comment:")
+                    self._reply_to_comment(mention)
+                except Exception as e:
+                    # We don't want the bot to stop running whenever an unexpected
+                    # exception is encountered. (E.g. socket timeout, which happened
+                    # before).
+                    LOGGER.error(
+                        "Encountered {} while attempting to respond to comment: {}"
+                            .format(
+                                type(e).__name__,
+                                str(e)))
         LOGGER.info("Finished reading inbox.")
         LOGGER.info("========")
 
@@ -144,13 +157,13 @@ class EmojipastaBot:
         try:
             mention.reply(emojipasta)
         except praw.exceptions.APIException as e:
-            LOGGER.warn("API exception: " + e.message)
+            LOGGER.warning("API exception: " + e.message)
             if e.error_type == "RATELIMIT":
                 return True
         return False
 
     def _wait_for_rate_limiting_to_pass(self):
-        LOGGER.warning("Waiting %d seconds for rate-limiting to wear off.".format(SECONDS_TO_WAIT_AFTER_RATE_LIMITING))
+        LOGGER.warning("Waiting {} seconds for rate-limiting to wear off.".format(SECONDS_TO_WAIT_AFTER_RATE_LIMITING))
         time.sleep(SECONDS_TO_WAIT_AFTER_RATE_LIMITING)
 
 def get_text_of_parent(comment):
@@ -174,10 +187,7 @@ def main():
         try:
             bot.reply_to_username_mentions()
         except Exception as e:
-            # We don't want the bot to stop running whenever an unexpected
-            # exception is encountered. (E.g. socket timeout, which happened
-            # before).
-            LOGGER.error("Encountered exception while attempting to run bot: " + str(e))
+            LOGGER.error("Got an unexpected error when reading inbox: " + str(e))
         time.sleep(SECONDS_BETWEEN_RUNS)
 
 if __name__ == "__main__":
