@@ -22,7 +22,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "emoji",
-        "praw"
+        "praw>=5.0.0,<6.0.0"
     ]
 )
 

@@ -85,10 +85,9 @@ class EmojipastaBot:
                     self._reply_to_comment(mention)
                 except Exception as e:
                     # We don't want the bot to stop running whenever an unexpected
-                    # exception is encountered. (E.g. socket timeout, which happened
-                    # before).
+                    # exception is encountered.
                     LOGGER.error(
-                        "Encountered {} while attempting to respond to comment: {}"
+                        "Encountered exception '{}' while attempting to respond to comment: {}"
                             .format(
                                 type(e).__name__,
                                 str(e)))
