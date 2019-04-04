@@ -1,6 +1,6 @@
 ## Description
 
-PyPI: https://pypi.org/project/emojipastabot
+PyPI (not working, currently): https://pypi.org/project/emojipastabot
 
 [u/AnEmojipastaBot](https://www.reddit.com/user/anemojipastabot) (now suspended from reddit) turns the parent
 of your comment into emojipasta. It can be summoned by mentioning it.
