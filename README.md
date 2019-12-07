@@ -1,7 +1,4 @@
 ## Description
-
-PyPI (not working, currently): https://pypi.org/project/emojipastabot
-
 [u/AnEmojipastaBot](https://www.reddit.com/user/anemojipastabot) (now suspended from reddit) turns the parent
 of your comment into emojipasta. It can be summoned by mentioning it.
 
@@ -23,10 +20,7 @@ There are no hard-coded credentials or user details in the code, so
 everyone is free to run their own version of the bot.
 
 ## Installation
-(Untested).
-```
-pip install emojipastabot
-```
+Clone the repository, run setup.py to install dependencies, add it to your Python path somehow.
 
 ## How to use...
 
