@@ -21,7 +21,7 @@ setup(
     package_data={'': ["*.txt", "*.json"]},
     include_package_data=True,
     install_requires=[
-        "emoji",
+        "emoji>=2.0.0,<3.0.0",
         "praw>=5.0.0,<6.0.0"
     ]
 )

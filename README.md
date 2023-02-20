@@ -20,7 +20,7 @@ There are no hard-coded credentials or user details in the code, so
 everyone is free to run their own version of the bot.
 
 ## Installation
-Clone the repository, run setup.py to install dependencies, add it to your Python path somehow.
+Clone the repository, then run `pip3 install .` in the top-level folder to install the package.
 
 ## How to use...
 
